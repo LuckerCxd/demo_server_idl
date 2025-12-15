@@ -4,10 +4,10 @@ package main
 
 import (
 	"context"
+	"demo_server_idl/code_gen_go/user"
 	"flag"
 	"fmt"
 	thrift "github.com/apache/thrift/lib/go/thrift"
-	"idl_demo/code_gen_go/user"
 	"math"
 	"net"
 	"net/url"
