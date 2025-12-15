@@ -7,12 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	thrift "github.com/apache/thrift/lib/go/thrift"
 	"iter"
 	"log/slog"
-	"time"
-	thrift "github.com/apache/thrift/lib/go/thrift"
-	"strings"
 	"regexp"
+	"strings"
+	"time"
 )
 
 // (needed to ensure safety because of naive import list construction.)
@@ -24,6 +24,7 @@ var _ = iter.Pull[int]
 var _ = slog.Log
 var _ = time.Now
 var _ = thrift.ZERO
+
 // (needed by validator.)
 var _ = strings.Contains
 var _ = regexp.MatchString
@@ -32,24 +33,20 @@ var _ = regexp.MatchString
 //  - ID
 //  - Name
 //  - Age
-// 
+//
 type User struct {
-	ID int64 `thrift:"Id,1" db:"Id" json:"Id"`
+	ID   int64  `thrift:"Id,1" db:"Id" json:"Id"`
 	Name string `thrift:"Name,2" db:"Name" json:"Name"`
-	Age *int32 `thrift:"Age,3" db:"Age" json:"Age,omitempty"`
+	Age  *int32 `thrift:"Age,3" db:"Age" json:"Age,omitempty"`
 }
 
 func NewUser() *User {
 	return &User{}
 }
 
-
-
 func (p *User) GetID() int64 {
 	return p.ID
 }
-
-
 
 func (p *User) GetName() string {
 	return p.Name
@@ -72,7 +69,6 @@ func (p *User) Read(ctx context.Context, iprot thrift.TProtocol) error {
 	if _, err := iprot.ReadStructBegin(ctx); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
-
 
 	for {
 		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
@@ -160,9 +156,15 @@ func (p *User) Write(ctx context.Context, oprot thrift.TProtocol) error {
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
 	if p != nil {
-		if err := p.writeField1(ctx, oprot); err != nil { return err }
-		if err := p.writeField2(ctx, oprot); err != nil { return err }
-		if err := p.writeField3(ctx, oprot); err != nil { return err }
+		if err := p.writeField1(ctx, oprot); err != nil {
+			return err
+		}
+		if err := p.writeField2(ctx, oprot); err != nil {
+			return err
+		}
+		if err := p.writeField3(ctx, oprot); err != nil {
+			return err
+		}
 	}
 	if err := oprot.WriteFieldStop(ctx); err != nil {
 		return thrift.PrependError("write field stop error: ", err)
@@ -220,13 +222,19 @@ func (p *User) Equals(other *User) bool {
 	} else if p == nil || other == nil {
 		return false
 	}
-	if p.ID != other.ID { return false }
-	if p.Name != other.Name { return false }
+	if p.ID != other.ID {
+		return false
+	}
+	if p.Name != other.Name {
+		return false
+	}
 	if p.Age != other.Age {
 		if p.Age == nil || other.Age == nil {
 			return false
 		}
-		if (*p.Age) != (*other.Age) { return false }
+		if (*p.Age) != (*other.Age) {
+			return false
+		}
 	}
 	return true
 }
@@ -243,7 +251,7 @@ func (p *User) LogValue() slog.Value {
 		return slog.AnyValue(nil)
 	}
 	v := thrift.SlogTStructWrapper{
-		Type: "*user.User",
+		Type:  "*user.User",
 		Value: p,
 	}
 	return slog.AnyValue(v)
@@ -258,16 +266,16 @@ func (p *User) Validate() error {
 type UserService interface {
 	// Parameters:
 	//  - UserId
-	// 
-	GetUser(ctx context.Context, userId int32) (_r *User, _err error)
+	//
+	GetUser(ctx context.Context, userId int64) (_r *User, _err error)
 	// Parameters:
 	//  - User
-	// 
+	//
 	CreateUser(ctx context.Context, user *User) (_r bool, _err error)
 }
 
 type UserServiceClient struct {
-	c thrift.TClient
+	c    thrift.TClient
 	meta thrift.ResponseMeta
 }
 
@@ -303,8 +311,8 @@ func (p *UserServiceClient) SetLastResponseMeta_(meta thrift.ResponseMeta) {
 
 // Parameters:
 //  - UserId
-// 
-func (p *UserServiceClient) GetUser(ctx context.Context, userId int32) (_r *User, _err error) {
+//
+func (p *UserServiceClient) GetUser(ctx context.Context, userId int64) (_r *User, _err error) {
 	var _args0 UserServiceGetUserArgs
 	_args0.UserId = userId
 	var _result2 UserServiceGetUserResult
@@ -322,7 +330,7 @@ func (p *UserServiceClient) GetUser(ctx context.Context, userId int32) (_r *User
 
 // Parameters:
 //  - User
-// 
+//
 func (p *UserServiceClient) CreateUser(ctx context.Context, user *User) (_r bool, _err error) {
 	var _args4 UserServiceCreateUserArgs
 	_args4.User = user
@@ -338,7 +346,7 @@ func (p *UserServiceClient) CreateUser(ctx context.Context, user *User) (_r bool
 
 type UserServiceProcessor struct {
 	processorMap map[string]thrift.TProcessorFunction
-	handler UserService
+	handler      UserService
 }
 
 func (p *UserServiceProcessor) AddToProcessorMap(key string, processor thrift.TProcessorFunction) {
@@ -356,21 +364,23 @@ func (p *UserServiceProcessor) ProcessorMap() map[string]thrift.TProcessorFuncti
 
 func NewUserServiceProcessor(handler UserService) *UserServiceProcessor {
 
-	self7 := &UserServiceProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
-	self7.processorMap["GetUser"] = &userServiceProcessorGetUser{handler:handler}
-	self7.processorMap["CreateUser"] = &userServiceProcessorCreateUser{handler:handler}
+	self7 := &UserServiceProcessor{handler: handler, processorMap: make(map[string]thrift.TProcessorFunction)}
+	self7.processorMap["GetUser"] = &userServiceProcessorGetUser{handler: handler}
+	self7.processorMap["CreateUser"] = &userServiceProcessorCreateUser{handler: handler}
 	return self7
 }
 
 func (p *UserServiceProcessor) Process(ctx context.Context, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
 	name, _, seqId, err2 := iprot.ReadMessageBegin(ctx)
-	if err2 != nil { return false, thrift.WrapTException(err2) }
+	if err2 != nil {
+		return false, thrift.WrapTException(err2)
+	}
 	if processor, ok := p.GetProcessorFunction(name); ok {
 		return processor.Process(ctx, seqId, iprot, oprot)
 	}
 	iprot.Skip(ctx, thrift.STRUCT)
 	iprot.ReadMessageEnd(ctx)
-	x8 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
+	x8 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function "+name)
 	oprot.WriteMessageBegin(ctx, name, thrift.EXCEPTION, seqId)
 	x8.Write(ctx, oprot)
 	oprot.WriteMessageEnd(ctx)
@@ -440,7 +450,7 @@ func (p *userServiceProcessorGetUser) Process(ctx context.Context, seqId int32, 
 				}
 			}
 		}
-		_exc10 := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetUser: " + err2.Error())
+		_exc10 := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GetUser: "+err2.Error())
 		if err2 := oprot.WriteMessageBegin(ctx, "GetUser", thrift.EXCEPTION, seqId); err2 != nil {
 			_write_err9 = thrift.WrapTException(err2)
 		}
@@ -547,7 +557,7 @@ func (p *userServiceProcessorCreateUser) Process(ctx context.Context, seqId int3
 				}
 			}
 		}
-		_exc12 := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing CreateUser: " + err2.Error())
+		_exc12 := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing CreateUser: "+err2.Error())
 		if err2 := oprot.WriteMessageBegin(ctx, "CreateUser", thrift.EXCEPTION, seqId); err2 != nil {
 			_write_err11 = thrift.WrapTException(err2)
 		}
@@ -592,23 +602,20 @@ func (p *userServiceProcessorCreateUser) Process(ctx context.Context, seqId int3
 	return true, err
 }
 
-
 // HELPER FUNCTIONS AND STRUCTURES
 
 // Attributes:
 //  - UserId
-// 
+//
 type UserServiceGetUserArgs struct {
-	UserId int32 `thrift:"userId,1" db:"userId" json:"userId"`
+	UserId int64 `thrift:"userId,1" db:"userId" json:"userId"`
 }
 
 func NewUserServiceGetUserArgs() *UserServiceGetUserArgs {
 	return &UserServiceGetUserArgs{}
 }
 
-
-
-func (p *UserServiceGetUserArgs) GetUserId() int32 {
+func (p *UserServiceGetUserArgs) GetUserId() int64 {
 	return p.UserId
 }
 
@@ -616,7 +623,6 @@ func (p *UserServiceGetUserArgs) Read(ctx context.Context, iprot thrift.TProtoco
 	if _, err := iprot.ReadStructBegin(ctx); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
-
 
 	for {
 		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
@@ -628,7 +634,7 @@ func (p *UserServiceGetUserArgs) Read(ctx context.Context, iprot thrift.TProtoco
 		}
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.I32 {
+			if fieldTypeId == thrift.I64 {
 				if err := p.ReadField1(ctx, iprot); err != nil {
 					return err
 				}
@@ -653,7 +659,7 @@ func (p *UserServiceGetUserArgs) Read(ctx context.Context, iprot thrift.TProtoco
 }
 
 func (p *UserServiceGetUserArgs) ReadField1(ctx context.Context, iprot thrift.TProtocol) error {
-	if v, err := iprot.ReadI32(ctx); err != nil {
+	if v, err := iprot.ReadI64(ctx); err != nil {
 		return thrift.PrependError("error reading field 1: ", err)
 	} else {
 		p.UserId = v
@@ -666,7 +672,9 @@ func (p *UserServiceGetUserArgs) Write(ctx context.Context, oprot thrift.TProtoc
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
 	if p != nil {
-		if err := p.writeField1(ctx, oprot); err != nil { return err }
+		if err := p.writeField1(ctx, oprot); err != nil {
+			return err
+		}
 	}
 	if err := oprot.WriteFieldStop(ctx); err != nil {
 		return thrift.PrependError("write field stop error: ", err)
@@ -678,10 +686,10 @@ func (p *UserServiceGetUserArgs) Write(ctx context.Context, oprot thrift.TProtoc
 }
 
 func (p *UserServiceGetUserArgs) writeField1(ctx context.Context, oprot thrift.TProtocol) (err error) {
-	if err := oprot.WriteFieldBegin(ctx, "userId", thrift.I32, 1); err != nil {
+	if err := oprot.WriteFieldBegin(ctx, "userId", thrift.I64, 1); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:userId: ", p), err)
 	}
-	if err := oprot.WriteI32(ctx, int32(p.UserId)); err != nil {
+	if err := oprot.WriteI64(ctx, int64(p.UserId)); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T.userId (1) field write error: ", p), err)
 	}
 	if err := oprot.WriteFieldEnd(ctx); err != nil {
@@ -702,7 +710,7 @@ func (p *UserServiceGetUserArgs) LogValue() slog.Value {
 		return slog.AnyValue(nil)
 	}
 	v := thrift.SlogTStructWrapper{
-		Type: "*user.UserServiceGetUserArgs",
+		Type:  "*user.UserServiceGetUserArgs",
 		Value: p,
 	}
 	return slog.AnyValue(v)
@@ -712,7 +720,7 @@ var _ slog.LogValuer = (*UserServiceGetUserArgs)(nil)
 
 // Attributes:
 //  - Success
-// 
+//
 type UserServiceGetUserResult struct {
 	Success *User `thrift:"success,0" db:"success" json:"success,omitempty"`
 }
@@ -738,7 +746,6 @@ func (p *UserServiceGetUserResult) Read(ctx context.Context, iprot thrift.TProto
 	if _, err := iprot.ReadStructBegin(ctx); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
-
 
 	for {
 		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
@@ -787,7 +794,9 @@ func (p *UserServiceGetUserResult) Write(ctx context.Context, oprot thrift.TProt
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
 	if p != nil {
-		if err := p.writeField0(ctx, oprot); err != nil { return err }
+		if err := p.writeField0(ctx, oprot); err != nil {
+			return err
+		}
 	}
 	if err := oprot.WriteFieldStop(ctx); err != nil {
 		return thrift.PrependError("write field stop error: ", err)
@@ -825,7 +834,7 @@ func (p *UserServiceGetUserResult) LogValue() slog.Value {
 		return slog.AnyValue(nil)
 	}
 	v := thrift.SlogTStructWrapper{
-		Type: "*user.UserServiceGetUserResult",
+		Type:  "*user.UserServiceGetUserResult",
 		Value: p,
 	}
 	return slog.AnyValue(v)
@@ -835,7 +844,7 @@ var _ slog.LogValuer = (*UserServiceGetUserResult)(nil)
 
 // Attributes:
 //  - User
-// 
+//
 type UserServiceCreateUserArgs struct {
 	User *User `thrift:"user,1" db:"user" json:"user"`
 }
@@ -861,7 +870,6 @@ func (p *UserServiceCreateUserArgs) Read(ctx context.Context, iprot thrift.TProt
 	if _, err := iprot.ReadStructBegin(ctx); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
-
 
 	for {
 		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
@@ -910,7 +918,9 @@ func (p *UserServiceCreateUserArgs) Write(ctx context.Context, oprot thrift.TPro
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
 	if p != nil {
-		if err := p.writeField1(ctx, oprot); err != nil { return err }
+		if err := p.writeField1(ctx, oprot); err != nil {
+			return err
+		}
 	}
 	if err := oprot.WriteFieldStop(ctx); err != nil {
 		return thrift.PrependError("write field stop error: ", err)
@@ -946,7 +956,7 @@ func (p *UserServiceCreateUserArgs) LogValue() slog.Value {
 		return slog.AnyValue(nil)
 	}
 	v := thrift.SlogTStructWrapper{
-		Type: "*user.UserServiceCreateUserArgs",
+		Type:  "*user.UserServiceCreateUserArgs",
 		Value: p,
 	}
 	return slog.AnyValue(v)
@@ -956,7 +966,7 @@ var _ slog.LogValuer = (*UserServiceCreateUserArgs)(nil)
 
 // Attributes:
 //  - Success
-// 
+//
 type UserServiceCreateUserResult struct {
 	Success *bool `thrift:"success,0" db:"success" json:"success,omitempty"`
 }
@@ -982,7 +992,6 @@ func (p *UserServiceCreateUserResult) Read(ctx context.Context, iprot thrift.TPr
 	if _, err := iprot.ReadStructBegin(ctx); err != nil {
 		return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
 	}
-
 
 	for {
 		_, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
@@ -1032,7 +1041,9 @@ func (p *UserServiceCreateUserResult) Write(ctx context.Context, oprot thrift.TP
 		return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
 	}
 	if p != nil {
-		if err := p.writeField0(ctx, oprot); err != nil { return err }
+		if err := p.writeField0(ctx, oprot); err != nil {
+			return err
+		}
 	}
 	if err := oprot.WriteFieldStop(ctx); err != nil {
 		return thrift.PrependError("write field stop error: ", err)
@@ -1070,12 +1081,10 @@ func (p *UserServiceCreateUserResult) LogValue() slog.Value {
 		return slog.AnyValue(nil)
 	}
 	v := thrift.SlogTStructWrapper{
-		Type: "*user.UserServiceCreateUserResult",
+		Type:  "*user.UserServiceCreateUserResult",
 		Value: p,
 	}
 	return slog.AnyValue(v)
 }
 
 var _ slog.LogValuer = (*UserServiceCreateUserResult)(nil)
-
-

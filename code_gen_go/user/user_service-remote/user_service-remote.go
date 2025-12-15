@@ -22,7 +22,7 @@ func Usage() {
 	fmt.Fprintln(os.Stderr, "Usage of ", os.Args[0], " [-h host:port] [-u url] [-f[ramed]] function [arg1 [arg2...]]:")
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\nFunctions:")
-	fmt.Fprintln(os.Stderr, "  User GetUser(i32 userId)")
+	fmt.Fprintln(os.Stderr, "  User GetUser(i64 userId)")
 	fmt.Fprintln(os.Stderr, "  bool CreateUser(User user)")
 	fmt.Fprintln(os.Stderr)
 	os.Exit(0)
@@ -147,12 +147,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, "GetUser requires 1 args")
 			flag.Usage()
 		}
-		tmp0, err13 := (strconv.Atoi(flag.Arg(1)))
+		argvalue0, err13 := (strconv.ParseInt(flag.Arg(1), 10, 64))
 		if err13 != nil {
 			Usage()
 			return
 		}
-		argvalue0 := int32(tmp0)
 		value0 := argvalue0
 		fmt.Print(client.GetUser(context.Background(), value0))
 		fmt.Print("\n")

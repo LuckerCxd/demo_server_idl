@@ -7,7 +7,7 @@ struct User {
 }
 
 service UserService {
-    User GetUser(1: i32 userId)
+    User GetUser(1: i64 userId)
     bool CreateUser(1: User user)
 }
 
