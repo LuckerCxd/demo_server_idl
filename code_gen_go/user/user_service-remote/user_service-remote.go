@@ -4,9 +4,9 @@ package main
 
 import (
 	"context"
-	"demo_server_idl/code_gen_go/user"
 	"flag"
 	"fmt"
+	"github.com/LuckerCxd/demo_server_idl/code_gen_go/user"
 	thrift "github.com/apache/thrift/lib/go/thrift"
 	"math"
 	"net"
