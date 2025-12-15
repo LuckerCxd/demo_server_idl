@@ -3,17 +3,17 @@
 package main
 
 import (
+	"./code_gen_go/user"
 	"context"
 	"flag"
 	"fmt"
+	thrift "github.com/apache/thrift/lib/go/thrift"
 	"math"
 	"net"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	thrift "github.com/apache/thrift/lib/go/thrift"
-	"E:/Thrift/idlprojects/server-idl/code_gen_go/user"
 )
 
 var _ = user.GoUnusedProtection__
@@ -66,7 +66,7 @@ func main() {
 	flag.BoolVar(&useHttp, "http", false, "Use http")
 	flag.Var(headers, "H", "Headers to set on the http(s) request (e.g. -H \"Key: Value\")")
 	flag.Parse()
-	
+
 	if len(urlString) > 0 {
 		var err error
 		parsedUrl, err = url.Parse(urlString)
@@ -83,7 +83,7 @@ func main() {
 			flag.Usage()
 		}
 	}
-	
+
 	cmd := flag.Arg(0)
 	var err error
 	var cfg *thrift.TConfiguration = nil
@@ -140,10 +140,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Error opening socket to ", host, ":", port, " ", err)
 		os.Exit(1)
 	}
-	
+
 	switch cmd {
 	case "GetUser":
-		if flag.NArg() - 1 != 1 {
+		if flag.NArg()-1 != 1 {
 			fmt.Fprintln(os.Stderr, "GetUser requires 1 args")
 			flag.Usage()
 		}
@@ -158,7 +158,7 @@ func main() {
 		fmt.Print("\n")
 		break
 	case "CreateUser":
-		if flag.NArg() - 1 != 1 {
+		if flag.NArg()-1 != 1 {
 			fmt.Fprintln(os.Stderr, "CreateUser requires 1 args")
 			flag.Usage()
 		}
