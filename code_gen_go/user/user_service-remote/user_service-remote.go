@@ -3,11 +3,11 @@
 package main
 
 import (
-	"./code_gen_go/user"
 	"context"
 	"flag"
 	"fmt"
 	thrift "github.com/apache/thrift/lib/go/thrift"
+	"idl_demo/code_gen_go/user"
 	"math"
 	"net"
 	"net/url"
