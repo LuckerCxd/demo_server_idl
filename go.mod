@@ -1,4 +1,4 @@
-module demo_server_idl
+module github.com/LuckerCxd/demo_server_idl
 
 go 1.24.11
 
